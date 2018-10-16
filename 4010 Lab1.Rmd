@@ -1,0 +1,305 @@
+---
+title: "Mike vs. LeBron"
+author: "Taylor Ledford, Josh Kornmayer, Zack Bell"
+date: "8/29/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library("readxl")
+library(ggplot2)
+library(dplyr)
+```
+
+```{r Regular Comparison}
+
+LebronRegular <- read_excel("JamesRegular1.xlsx", sheet = 1)
+MikeRegular <- read_excel("JordanRegular.xlsx", sheet = 1)
+
+LR <- data.frame(LebronRegular)
+MR <- data.frame(MikeRegular)
+
+LR <- LR[-c(16,17,18), ]
+LR[,3:24] <- lapply(LR[,3:24], as.numeric)
+
+
+xAxis <- 21:35
+
+ggplot() +
+  geom_point(data=LR, aes(x=AGE, y=PTS), color="purple") +
+  geom_point(data=MR, aes(x=AGE, y=PTS), color="red") +
+  theme_classic()
+  
+
+ggplot() +
+  geom_point(data=LR, aes(x=AGE, y=AST), color="purple") +
+  geom_point(data=MR, aes(x=AGE, y=AST), color="red") +
+  theme_classic()
+
+ggplot() +
+  geom_point(data=LR, aes(x=AGE, y=REB), color="purple") +
+  geom_point(data=MR, aes(x=AGE, y=REB), color="red") +
+  theme_classic()
+
+ggplot() +
+  geom_point(data=LR, aes(x=AGE, y=STL), color="purple") +
+  geom_point(data=MR, aes(x=AGE, y=STL), color="red") +
+  theme_classic()
+
+ggplot() +
+  geom_point(data=LR, aes(x=AGE, y=GP), color="purple") +
+  geom_point(data=MR, aes(x=AGE, y=GP), color="red") +
+  theme_classic()
+```
+
+```{r Playoff Comparison}
+LebronPlayoff <- read_excel("JamesPlayoff.xlsx", sheet = 1)
+MikePlayoff <- read_excel("JordanPlayoff.xlsx", sheet = 1)
+
+
+MP <- data.frame(MikePlayoff)
+LP <- data.frame(LebronPlayoff)
+
+ggplot() +
+  geom_point(data=LP, aes(x=AGE, y=PTS), color="purple") +
+  geom_point(data=MP, aes(x=AGE, y=PTS), color="red") +
+  theme_classic()+
+  scale_x_continuous(breaks=xAxis, labels=xAxis)
+
+ggplot() +
+  geom_point(data=LP, aes(x=AGE, y=AST), color="purple") +
+  geom_point(data=MP, aes(x=AGE, y=AST), color="red") +
+  theme_classic()+
+  scale_x_continuous(breaks=xAxis, labels=xAxis)
+
+ggplot() +
+  geom_point(data=LP, aes(x=AGE, y=REB), color="purple") +
+  geom_point(data=MP, aes(x=AGE, y=REB), color="red") +
+  theme_classic()+
+  scale_x_continuous(breaks=xAxis, labels=xAxis)
+
+ggplot() +
+  geom_point(data=LP, aes(x=AGE, y=STL), color="purple") +
+  geom_point(data=MP, aes(x=AGE, y=STL), color="red") +
+  theme_classic()+
+  scale_x_continuous(breaks=xAxis, labels=xAxis)
+
+ggplot() +
+  geom_point(data=LP, aes(x=AGE, y=GP), color="purple") +
+  geom_point(data=MP, aes(x=AGE, y=GP), color="red") +
+  theme_classic() +
+  scale_x_continuous(breaks=xAxis, labels=xAxis)
+```
+```{r, PlayoffEff}
+
+#Points Metric
+
+PTSLP <- weighted.mean(LP$PTS)
+SD.LPPTS <- sd(LP$PTS)
+
+PTSMP <- weighted.mean(MP$PTS)
+SD.MPPTS <- sd(MP$PTS)
+
+LPFG <- weighted.mean(LP$FG.)
+MPFG <- weighted.mean(MP$FG.)
+
+LP.PTS <- ((2*LPFG) * PTSLP/SD.LPPTS)/100
+MP.PTS <- ((2*MPFG) * PTSMP/SD.MPPTS)/100
+
+#While scoring is important so is the efficiency you do it with so I multiplied each player's point metric by their field goal percentage to reward whichever of the two had a higher FG%.
+ 
+
+#Rebound Metric
+
+REBLP <- weighted.mean(LP$REB)
+SD.LPREB <- sd(LP$REB)
+
+REBMP <- weighted.mean(MP$REB)
+SD.MPREB <- sd(MP$REB)
+
+LP.REB <- .8 * (REBLP)/SD.LPREB
+MP.REB <- .8 * (REBMP)/SD.MPREB
+
+
+#Assist Metric
+
+ASTLP <- weighted.mean(LP$AST)
+SD.LPAST <- sd(LP$AST)
+
+ASTMP <- weighted.mean(MP$AST)
+SD.MPAST <- sd(MP$AST)
+
+LP.AST <- .9 * (ASTLP)/SD.LPAST
+MP.AST <- .9 * (ASTMP)/SD.MPAST
+
+
+#Steal Metric
+
+STLLP <- weighted.mean(LP$STL)
+SD.LPSTL <- sd(LP$STL)
+
+STLMP <- weighted.mean(MP$STL)
+SD.MPSTL <- sd(MP$STL)
+
+LP.STL <- ((STLLP)/SD.LPSTL)/2
+MP.STL <- ((STLMP)/SD.MPSTL)/2
+
+
+#Block Metric
+
+BLKLP <- weighted.mean(LP$BLK)
+SD.LPBLK <- sd(LP$BLK)
+
+BLKMP <- weighted.mean(MP$BLK)
+SD.MPBLK <- sd(MP$BLK)
+
+LP.BLK <- .9 * ((BLKLP)/SD.LPBLK)/2
+MP.BLK <- .9 * ((BLKMP)/SD.MPBLK)/2
+
+
+#Turnover Metric
+
+TOVLP <- weighted.mean(LP$TOV)
+SD.LPTOV <- sd(LP$TOV)
+
+TOVMP <- weighted.mean(MP$TOV)
+SD.MPTOV <- sd(MP$TOV)
+
+LP.TOV <- .7 * (TOVLP)/SD.LPTOV
+MP.TOV <- .7 * (TOVMP)/SD.MPBLK
+
+LeBronPlayEff <- (LP.PTS + LP.REB + LP.AST + LP.STL + LP.BLK - LP.TOV)
+MikePlayEff <- (MP.PTS + MP.REB + MP.AST + MP.STL + MP.BLK - MP.TOV)
+
+```
+
+```{r, RegularEff}
+
+#Points Metric
+
+PTSLR <- weighted.mean(LR$PTS)
+SD.LRPTS <- sd(LR$PTS)
+
+PTSMR <- weighted.mean(MR$PTS)
+SD.MRPTS <- sd(MR$PTS)
+
+LRFG <- weighted.mean(LR$FG.)
+MRFG <- weighted.mean(MR$FG.)
+
+LR.PTS <- ((2*LRFG) * PTSLR/SD.LRPTS)/100
+MR.PTS <- ((2*MRFG) * PTSMR/SD.MRPTS)/100
+
+#I took the average points per game, and found the standard deviation of that.  If the standard deviation is higher, that means the player is less consistent. So dividing the weighted average by the standard deviation takes into account how high the average is, as well as how consistent the player was because the higher the sd, the lower the overall number will be.  I then took this number and multiplied it by the average field goal percentage to account for efficiency and accuracy.  So scoring 30 ppg on 50% shooting will mean more than scoring 30 ppg on 45% shooting. To keep this number consistent with the weights of all the other metrics, I took that number and multiplied it by two.  If i didn't do that, then points would be around 4-5 points out of the total rather than 8-9 which is a more accurate representation of the importance of points compared to the data in my opinion. 
+ 
+
+#Rebound Metric
+
+REBLR <- weighted.mean(LR$REB)
+SD.LRREB <- sd(LR$REB)
+
+REBMR <- weighted.mean(MR$REB)
+SD.MRREB <- sd(MR$REB)
+
+LR.REB <- .8 * (REBLR)/SD.LRREB
+MR.REB <- .8 * (REBMR)/SD.MRREB
+
+
+# I had the same mindset as I did with points dividing the wighted average by the standard deviation but multiplied the final number by .8 because I do not consider rebounds as important as points
+
+
+#Assist Metric
+
+ASTLR <- weighted.mean(LR$AST)
+SD.LRAST <- sd(LR$AST)
+
+ASTMR <- weighted.mean(MR$AST)
+SD.MRAST <- sd(MR$AST)
+
+LR.AST <- .9 * (ASTLR)/SD.LRAST
+MR.AST <- .9 * (ASTMR)/SD.MRAST
+
+# I had the same mindset as I did with points dividing the wighted average by the standard deviation but multiplied the final number by .9 because I do not consider assists as important as points but I think they are more important than rebounds.
+
+
+
+#Steal Metric
+
+STLLR <- weighted.mean(LR$STL)
+SD.LRSTL <- sd(LR$STL)
+
+STLMR <- weighted.mean(MR$STL)
+SD.MRSTL <- sd(MR$STL)
+
+LR.STL <- ((STLLR)/SD.LRSTL)/2
+MR.STL <- ((STLMR)/SD.MRSTL)/2
+
+# I divided the weighted average/sd number by 2 because if I didn't, it would make steals just as impactful as points on the final number.  Dividing steals and rebounds by 2 offsets the data to where offense is slightly more important than defense but they are about the same weight.
+
+
+#Block Metric
+
+BLKLR <- weighted.mean(LR$BLK)
+SD.LRBLK <- sd(LR$BLK)
+
+BLKMR <- weighted.mean(MR$BLK)
+SD.MRBLK <- sd(MR$BLK)
+
+LR.BLK <- .9 * ((BLKLR)/SD.LRBLK)/2
+MR.BLK <- .9 * ((BLKMR)/SD.MRBLK)/2
+
+#I multiplied blocks by .9 because I consider blocks slightly less important than steals because more steals result in transition scoring opportunities than blocks
+
+
+#Turnover Metric
+
+TOVLR <- weighted.mean(LR$TOV)
+SD.LRTOV <- sd(LR$TOV)
+
+TOVMR <- weighted.mean(MR$TOV)
+SD.MRTOV <- sd(MR$TOV)
+
+LR.TOV <- .7 * (TOVLR)/SD.LRTOV
+MR.TOV <- .7 * (TOVMR)/SD.MRBLK
+
+LeBronRegEff <- (LR.PTS + LR.REB + LR.AST + LR.STL + LR.BLK - LR.TOV)
+MikeRegEff <- (MR.PTS + MR.REB + MR.AST + MR.STL + MR.BLK - MR.TOV)
+
+#I multiplied turnovers by .7 because I don't think they matter as much as any of the other stats that are beneficial to the team but should be considered.  Had I not multiplied them by .7, they would have been more impactful than rebounds and assists which I believe is not the case.
+
+```
+
+```{r, FinalEff}
+FinalMike <- ((MikePlayEff*1.25)+MikeRegEff)/2
+FinalLeBron <- ((LeBronPlayEff*1.25)+MikeRegEff)/2
+
+FinalMike
+FinalLeBron
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

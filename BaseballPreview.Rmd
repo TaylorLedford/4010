@@ -1,0 +1,16 @@
+```{r}
+library(Lahman)
+offense <- subset(Teams, yearID> 1950)[, c("teamID", "yearID", "lgID", "R", "AB", "HR", "SO")]
+nyy <-subset(offense, offense$teamID == "NYA")
+plot(nyy$yearID, nyy$HR)
+lines(nyy$yearID, nyy$HR)
+
+library(zoo)
+
+rmean <-rollmean(nyy$HR,k=3)
+plot(nyy$HR)
+lines(rmean)
+
+plot(nyy$yearID,nyy$SO/nyy$HR)
+lines(nyy$yearID,nyy$SO/nyy$HR)
+```

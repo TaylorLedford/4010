@@ -1,0 +1,42 @@
+---
+title: "LabNFL"
+author: "Taylor Ledford"
+date: "9/11/2018"
+output: html_document
+---
+```{r message=FALSE}
+library(party)
+library(tree)
+```
+
+```{r}
+nfl_data <-read.csv("NFL1.csv")
+nfl_data$Div_Rank_factor <-factor(nfl_data$Div_Rank)
+nrow(nfl_data)
+ncol(nfl_data)
+set.seed(2)
+select_rows <- sample(1:nrow(nfl_data),round(0.3*nrow(nfl_data)),replace=F)
+select_rows
+test <- nfl_data[select_rows,]
+train <- nfl_data[-(select_rows),]
+model_tree <-tree(Win_PCT~PASS+RUSH, data = train)
+plot(model_tree)
+text(model_tree)
+pred <- predict(model_tree,newdata = test)
+pred
+```
+```{r}
+nfl_data <-read.csv("NFL1.csv")
+nfl_data$Div_Rank_factor <- factor(nfl_data$Div_Rank)
+nrow(nfl_data)
+ncol(nfl_data)
+set.seed(1)
+select_rows <- sample(1:nrow(nfl_data),round(0.3*nrow(nfl_data)),replace=F)
+select_rows
+test <- nfl_data[select_rows,]
+train <- nfl_data[-(select_rows),]
+model_tree <- ctree(Div_Rank_factor~RUSH+PASS, data = train)
+plot(model_tree)
+pred <- predict(model_tree,newdata = test)
+pred
+```

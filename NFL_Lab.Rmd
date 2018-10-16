@@ -1,0 +1,95 @@
+---
+title: "NFL_Lab"
+author: "Taylor Ledford & Josh Kornmayer"
+date: "9/25/2018"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(party)
+library(tree)
+library(rpart)
+library(taRifx)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+rushing <- read.csv("2017_Rushing.csv")
+combine <- read.csv("combine.csv")
+Power5 <- read.csv("Powerof5.csv")
+Category <- read.csv("Category.csv")
+```
+```{r}
+Category$Category <- as.factor(Category$Category)
+levels(Category$Category) <- c(1,2,3)
+names(rushing) <- c("Name", "Team", "Gms", "Att", "Yds", "Avg", "YPG", "Lg", "TD")
+totalData <- merge(rushing, combine, by="Name", all=TRUE) %>%
+  filter(Team != "NA" & College != "NA") %>%
+  filter(POS != "ILB")
+totalData$Yds <- as.numeric(destring(totalData$Yds))
+totalData$Metric <- c(totalData$Yds/(totalData$Att/totalData$Gms))
+totalData$Weight.lbs. <- unlist(totalData$Weight.lbs.)
+totalData$College <- as.character(totalData$College)
+Power5$School <- as.character(Power5$School)
+totalData$Category <- Category$Category
+```
+```{r Scenario 1}
+set.seed(3)
+select_rows <- sample(1:nrow(totalData),round(0.3*nrow(totalData)),replace=F)
+test1 <- totalData[select_rows,]
+train1 <- totalData[-(select_rows),]
+model_tree1 <-tree(Avg ~ Height.in.+Weight.lbs.+X40_Yard+Bench_Press+Vert_Leap.in.+Broad_Jump.in.+Shuttle+X3Cone, data = train1, mindev=0, minsize=5, mincut=2)
+model_rpart1 <- rpart(Avg ~ Height.in.+Weight.lbs.+X40_Yard+Bench_Press+Vert_Leap.in.+Broad_Jump.in.+Shuttle+X3Cone, data = train1, method="anova", minsplit = 4, minbucket=1)
+plot(model_tree1)
+text(model_tree1)
+pred1 <- predict(model_tree1, newdata = test1)
+pred1
+fancyRpartPlot(model_rpart1)
+rpart1 <- predict(model_rpart1, newdata = test1)
+rpart1
+```
+```{r Scenario 2}
+set.seed(5)
+select_rows <- sample(1:nrow(totalData),round(0.3*nrow(totalData)),replace=F)
+test2 <- totalData[select_rows,]
+train2 <- totalData[-(select_rows),]
+model_tree2 <- tree(Metric ~ Height.in.+Weight.lbs.+X40_Yard+Bench_Press+Vert_Leap.in.+Broad_Jump.in.+Shuttle+X3Cone, data = train2, mindev=0, minsize=5, mincut=2)
+model_rpart2 <- rpart(Metric ~ Height.in.+Weight.lbs.+X40_Yard+Bench_Press+Vert_Leap.in.+Broad_Jump.in.+Shuttle+X3Cone, data = train2, method="anova", minsplit = 4, minbucket=1)
+plot(model_tree2)
+text(model_tree2)
+pred2 <- predict(model_tree2,newdata = test2)
+pred2
+fancyRpartPlot(model_rpart2)
+rpart2 <- predict(model_rpart2, newdata = test2)
+rpart2
+```
+```{r Scenario 3}
+set.seed(3)
+select_rows <- sample(1:nrow(totalData),round(0.3*nrow(totalData)),replace=F)
+test3 <- totalData[select_rows,]
+train3 <- totalData[-(select_rows),]
+model_tree3 <-tree(TD ~ X40_Yard+Broad_Jump.in.+Shuttle+X3Cone+Category, data = train3, mindev=0, minsize=6, mincut=3)
+model_rpart3 <- rpart(Avg ~ X40_Yard+Broad_Jump.in.+Shuttle+X3Cone+Category, data = train3, method="anova", minsplit = 4, minbucket=1)
+plot(model_tree3)
+text(model_tree3)
+pred3 <- predict(model_tree3,newdata = test3)
+pred3
+fancyRpartPlot(model_rpart3)
+rpart3 <- predict(model_rpart3, newdata= test3)
+rpart3
+```
+```{r Scenario 4}
+set.seed(3)
+select_rows <- sample(1:nrow(totalData),round(0.3*nrow(totalData)),replace=F)
+test4 <- totalData[select_rows,]
+train4 <- totalData[-(select_rows),]
+model_tree4 <-tree(Metric ~ X40_Yard+Broad_Jump.in.+Shuttle+X3Cone+Category, data = train4, mindev=0, minsize=6, mincut=3)
+model_rpart4 <-rpart(Metric ~ X40_Yard+Broad_Jump.in.+Shuttle+X3Cone+Category, data = train4, method="anova", minsplit = 4, minbucket=1)
+plot(model_tree4)
+text(model_tree4)
+pred4 <- predict(model_tree4,newdata = test4)
+pred4
+fancyRpartPlot(model_rpart4)
+rpart4 <- predict(model_rpart4, newdata= test4)
+rpart4
+```

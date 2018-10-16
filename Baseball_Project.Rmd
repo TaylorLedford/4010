@@ -1,0 +1,187 @@
+---
+title: "Baseball Project"
+author: "Taylor Ledford, Josh Kornmayer, Zack Bell"
+date: "10/4/2018"
+output: html_document
+---
+
+```{r message=FALSE, warning=TRUE}
+library(Lahman)
+library(dplyr)
+library(ggplot2)
+```
+
+
+
+```{r}
+FiveTeams <- Teams %>%
+  filter(yearID >= 2000 & yearID <= 2017) %>%
+  filter(franchID == "ATL" | franchID == "SDP" | franchID == "SFG" | franchID == "OAK" | franchID == "NYY")
+
+FiveTeams <- FiveTeams %>%
+  group_by(franchID) %>%
+  mutate(TB = H + X2B + X3B*2 + HR*3)
+
+FiveTeams <- FiveTeams %>%
+  mutate(var1=(TB/AB))
+
+FiveTeams <- FiveTeams %>%
+  mutate(var2=((H+BB+HBP)/(AB+BB+SF+HBP)))
+
+FiveTeams <- FiveTeams %>%
+  mutate(OPS = (var1 + var2))
+
+FiveTeams <- FiveTeams %>%
+  mutate(BABIP=((H-HR)/(AB-SO-HR+SF)))
+
+ATL <- FiveTeams %>%
+        filter(franchID=="ATL")
+
+NYY <- FiveTeams %>%
+        filter(franchID=="NYY")
+
+SDP <- FiveTeams %>%
+        filter(franchID=="SDP")
+
+OAK <- FiveTeams %>%
+        filter(franchID=="OAK")
+
+SFG <- FiveTeams %>%
+        filter(franchID=="SFG")
+```
+
+```{r, problem 1A}
+ggplot(ATL, aes(x=yearID, y=OPS)) +
+  geom_line(color="red") +
+  labs(x="Year", y="OPS", title="Braves OPS", subtitle="2000-2017") +
+  theme_classic()
+  
+ggplot(NYY, aes(x=yearID, y=OPS)) +
+  geom_line(color="blue") +
+  labs(x="Year", y="OPS", title="Yankees OPS", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(SFG, aes(x=yearID, y=OPS)) +
+  geom_line() +
+  labs(x="Year", y="OPS", title="Giants OPS", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(SDP, aes(x=yearID, y=OPS)) +
+  geom_line(color="gold") +
+  labs(x="Year", y="OPS", title="Padres OPS", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(OAK, aes(x=yearID, y=OPS)) +
+  geom_line(color="green") +
+  labs(x="Year", y="OPS", title="Athletics OPS", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(FiveTeams, aes(x=yearID, y=OPS, col=franchID)) +
+  geom_line() +
+  scale_color_manual(values=c("#FF0000", "#3333FF", "#339933", "#FFCC33", "#000000")) +
+  labs(x="Year", y="OPS", title="Five Teams OPS", col="Franchise") +
+  theme_classic()
+```
+
+```{r, problem 1B}
+ggplot(ATL, aes(x=yearID, y=BABIP)) +
+  geom_line(color="red") +
+  labs(x="Year", y="BABIP", title="Braves BABIP", subtitle="2000-2017") +
+  theme_classic()
+  
+ggplot(NYY, aes(x=yearID, y=BABIP)) +
+  geom_line(color="blue") +
+  labs(x="Year", y="BABIP", title="Yankees BABIP", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(SFG, aes(x=yearID, y=BABIP)) +
+  geom_line() +
+  labs(x="Year", y="BABIP", title="Giants BABIP", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(SDP, aes(x=yearID, y=BABIP)) +
+  geom_line(color="gold") +
+  labs(x="Year", y="BABIP", title="Padres BABIP", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(OAK, aes(x=yearID, y=BABIP)) +
+  geom_line(color="green") +
+  labs(x="Year", y="BABIP", title="Athletics BABIP", subtitle="2000-2017") +
+  theme_classic()
+
+ggplot(FiveTeams, aes(x=yearID, y=BABIP, col=franchID)) +
+  geom_line() +
+  scale_color_manual(values=c("#FF0000", "#3333FF", "#339933", "#FFCC33", "#000000")) +
+  labs(x="Year", y="BABIP", title="Five Teams BABIP", col="Franchise") +
+  theme_classic()
+```
+
+```{r, problem 2A}
+Teams00 <- FiveTeams %>%
+  filter(yearID==2000) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams00, aes(x=OPS, y=WP)) +
+  geom_point() +
+  labs(x="OPS", y="Win Percent", title="OPS vs. Win Percentage in 2000", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+
+Teams07 <- FiveTeams %>%
+  filter(yearID==2007) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams07, aes(x=OPS, y=WP)) +
+  geom_point() +
+  labs(x="OPS", y="Win Percent", title="OPS vs. Win Percentage in 2007", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+
+Teams15 <- FiveTeams %>%
+  filter(yearID==2015) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams15, aes(x=OPS, y=WP)) +
+  geom_point() +
+  labs(x="OPS", y="Win Percent", title="OPS vs. Win Percentage in 2015", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+```
+
+```{r, problem 2B}
+Teams00 <- FiveTeams %>%
+  filter(yearID==2000) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams00, aes(x=BABIP, y=WP)) +
+  geom_point() +
+  labs(x="BABIP", y="Win Percent", title="BABIP vs. Win Percentage in 2000", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+
+Teams07 <- FiveTeams %>%
+  filter(yearID==2007) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams07, aes(x=BABIP, y=WP)) +
+  geom_point() +
+  labs(x="BABIP", y="Win Percent", title="BABIP vs. Win Percentage in 2007", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+
+Teams15 <- FiveTeams %>%
+  filter(yearID==2015) %>%
+  mutate(WP=W/G)
+
+ggplot(Teams15, aes(x=BABIP, y=WP)) +
+  geom_point() +
+  labs(x="BABIP", y="Win Percent", title="BABIP vs. Win Percentage in 2015", col="Franchise") +
+  stat_smooth(method='lm', se=FALSE) +
+  theme_classic() +
+  geom_text(aes(label=franchID, hjust=1))
+```

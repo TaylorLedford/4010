@@ -14,25 +14,27 @@ library(ggplot2)
 
 
 ```{r}
-FiveTeams <- Teams %>%
-  filter(yearID >= 2000 & yearID <= 2017) %>%
-  filter(franchID == "ATL" | franchID == "SDP" | franchID == "SFG" | franchID == "OAK" | franchID == "NYY")
+AllTeams <- Teams %>%
+  filter(yearID >= 2000 & yearID <= 2017) 
 
-FiveTeams <- FiveTeams %>%
+AllTeams <- AllTeams %>%
   group_by(franchID) %>%
   mutate(TB = H + X2B + X3B*2 + HR*3)
 
-FiveTeams <- FiveTeams %>%
+AllTeams <- AllTeams %>%
   mutate(var1=(TB/AB))
 
-FiveTeams <- FiveTeams %>%
+AllTeams <- AllTeams %>%
   mutate(var2=((H+BB+HBP)/(AB+BB+SF+HBP)))
 
-FiveTeams <- FiveTeams %>%
+AllTeams <- AllTeams %>%
   mutate(OPS = (var1 + var2))
 
-FiveTeams <- FiveTeams %>%
+AllTeams <- AllTeams %>%
   mutate(BABIP=((H-HR)/(AB-SO-HR+SF)))
+
+FiveTeams <- AllTeams %>%
+  filter(franchID == "ATL" | franchID == "SDP" | franchID == "SFG" | franchID == "OAK" | franchID == "NYY")
 
 ATL <- FiveTeams %>%
         filter(franchID=="ATL")
@@ -117,7 +119,7 @@ ggplot(FiveTeams, aes(x=yearID, y=BABIP, col=franchID)) +
 ```
 
 ```{r, problem 2A}
-Teams00 <- FiveTeams %>%
+Teams00 <- AllTeams %>%
   filter(yearID==2000) %>%
   mutate(WP=W/G)
 
@@ -128,7 +130,7 @@ ggplot(Teams00, aes(x=OPS, y=WP)) +
   theme_classic() +
   geom_text(aes(label=franchID, hjust=1))
 
-Teams07 <- FiveTeams %>%
+Teams07 <- AllTeams %>%
   filter(yearID==2007) %>%
   mutate(WP=W/G)
 
@@ -137,22 +139,22 @@ ggplot(Teams07, aes(x=OPS, y=WP)) +
   labs(x="OPS", y="Win Percent", title="OPS vs. Win Percentage in 2007", col="Franchise") +
   stat_smooth(method='lm', se=FALSE) +
   theme_classic() +
-  geom_text(aes(label=franchID, hjust=1))
+  geom_text(aes(label=franchID, vjust=1))
 
-Teams15 <- FiveTeams %>%
+Teams15 <- AllTeams %>%
   filter(yearID==2015) %>%
   mutate(WP=W/G)
 
 ggplot(Teams15, aes(x=OPS, y=WP)) +
   geom_point() +
   labs(x="OPS", y="Win Percent", title="OPS vs. Win Percentage in 2015", col="Franchise") +
-  stat_smooth(method='lm', se=FALSE) +
+  geom_smooth(method='lm', se=FALSE) +
   theme_classic() +
-  geom_text(aes(label=franchID, hjust=1))
+  geom_text(aes(label=franchID, vjust=1))
 ```
 
 ```{r, problem 2B}
-Teams00 <- FiveTeams %>%
+Teams00 <- AllTeams %>%
   filter(yearID==2000) %>%
   mutate(WP=W/G)
 
@@ -161,9 +163,9 @@ ggplot(Teams00, aes(x=BABIP, y=WP)) +
   labs(x="BABIP", y="Win Percent", title="BABIP vs. Win Percentage in 2000", col="Franchise") +
   stat_smooth(method='lm', se=FALSE) +
   theme_classic() +
-  geom_text(aes(label=franchID, hjust=1))
+  geom_text(aes(label=franchID, hjust=1, vjust=1))
 
-Teams07 <- FiveTeams %>%
+Teams07 <- AllTeams %>%
   filter(yearID==2007) %>%
   mutate(WP=W/G)
 
@@ -172,9 +174,9 @@ ggplot(Teams07, aes(x=BABIP, y=WP)) +
   labs(x="BABIP", y="Win Percent", title="BABIP vs. Win Percentage in 2007", col="Franchise") +
   stat_smooth(method='lm', se=FALSE) +
   theme_classic() +
-  geom_text(aes(label=franchID, hjust=1))
+  geom_text(aes(label=franchID, hjust=1, vjust=1))
 
-Teams15 <- FiveTeams %>%
+Teams15 <- AllTeams %>%
   filter(yearID==2015) %>%
   mutate(WP=W/G)
 

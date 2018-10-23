@@ -1,0 +1,97 @@
+---
+title: "BaseballProject2"
+author: "Taylor Ledford, Josh Kornmayer, Zack Bell"
+date: "10/18/2018"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(cluster)
+Teams <- read.csv("Teams.csv")
+```
+
+```{r}
+TeamsData <- Teams %>%
+  filter(yearID>=1950) %>%
+  subset(select=c(yearID, franchID, G, R, AB, H, X2B, X3B, HR, BB, SO, ERA)) %>%
+  mutate(R=R/G, AB=AB/G, H=H/G, BB=BB/G, SO=SO/G, TB=H+X2B+X3B*3+HR*3) %>%
+  mutate(TB=TB/G, AVG=H/AB) %>%
+  filter(franchID == "ATL" | franchID == "CHC" | franchID == "SFG" | franchID == "OAK" | franchID == "NYY") %>%
+  subset(select=c(yearID, franchID, R, H, AVG, TB, BB, SO, ERA))
+
+ATL <- TeamsData %>%
+  filter(franchID=="ATL")
+
+row.names(ATL) <- ATL$yearID
+
+CHC <- TeamsData %>%
+  filter(franchID=="CHC")
+
+SFG <- TeamsData %>%
+  filter(franchID=="SFG")
+
+OAK <- TeamsData %>%
+  filter(franchID=="OAK")
+
+NYY <- TeamsData %>%
+  filter(franchID=="NYY")
+```
+
+```{r}
+set.seed(1)
+ATL_cluster <- kmeans(ATL[,3:9],3,nstart = 20)
+ATL_cluster
+table(ATL_cluster$cluster, ATL$R)
+
+clusplot(ATL[,c(3:9)], ATL_cluster$cluster, color=T, labels = 2, lwd=2)
+```
+
+```{r}
+set.seed(1)
+NYY_cluster <- kmeans(NYY[,3:9],2,nstart = 20)
+NYY_cluster
+table(NYY_cluster$cluster, NYY$R)
+
+clusplot(NYY[,c(3:9)], NYY_cluster$cluster, color=T, lwd=2)
+```
+
+```{r}
+set.seed(1)
+CHC_cluster <- kmeans(CHC[,3:9],2,nstart = 20)
+CHC_cluster
+table(CHC_cluster$cluster, CHC$R)
+
+clusplot(CHC[,c(3:9)], CHC_cluster$cluster, color=T, lwd=2)
+```
+```{r}
+set.seed(1)
+SFG_cluster <- kmeans(SFG[,3:9],2,nstart = 20)
+SFG_cluster
+table(SFG_cluster$cluster, SFG$R)
+
+clusplot(SFG[,c(3:9)], SFG_cluster$cluster, color=T, lwd=2)
+```
+```{r}
+set.seed(1)
+OAK_cluster <- kmeans(OAK[,3:9],4,nstart = 20)
+OAK_cluster
+table(OAK_cluster$cluster, OAK$R)
+
+clusplot(OAK[,c(3:9)], OAK_cluster$cluster, color=T, lwd=2)
+```
+
+
+```{r}
+## K means to determine pitch types
+pitch_data <- read.csv("pitch_types.csv")
+set.seed(1)
+pitch_cluster <- kmeans(pitch_data[,3:6],2,nstart = 10)
+pitch_cluster
+table(pitch_cluster$cluster, pitch_data$AutoPitchType)## K means to determine pitch types
+
+##png(file="kmeansPlot.png", height=500, width=650)
+clusplot(pitch_data[,c(3:8)], pitch_cluster$cluster, color=T, lwd=2)
+
+```

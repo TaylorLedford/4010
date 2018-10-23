@@ -15,71 +15,130 @@ Teams <- read.csv("Teams.csv")
 ```{r}
 TeamsData <- Teams %>%
   filter(yearID>=1950) %>%
-  subset(select=c(yearID, franchID, G, R, AB, H, X2B, X3B, HR, BB, SO, ERA)) %>%
-  mutate(R=R/G, AB=AB/G, H=H/G, BB=BB/G, SO=SO/G, TB=H+X2B+X3B*3+HR*3) %>%
+  subset(select=c(yearID, franchID, G, W, R, AB, H, X2B, X3B, HR, BB, SO, ERA)) %>%
+  mutate(R=R/G, AB=AB/G, H=H/G, WP=W/G, BB=BB/G, SO=SO/G, TB=H+X2B+X3B*3+HR*3) %>%
   mutate(TB=TB/G, AVG=H/AB) %>%
   filter(franchID == "ATL" | franchID == "CHC" | franchID == "SFG" | franchID == "OAK" | franchID == "NYY") %>%
-  subset(select=c(yearID, franchID, R, H, AVG, TB, BB, SO, ERA))
+  subset(select=c(yearID, franchID, WP, R, H, AVG, TB, BB, SO, ERA))
 
 ATL <- TeamsData %>%
   filter(franchID=="ATL")
-
 row.names(ATL) <- ATL$yearID
-
 CHC <- TeamsData %>%
   filter(franchID=="CHC")
-
+row.names(CHC) <- CHC$yearID
 SFG <- TeamsData %>%
   filter(franchID=="SFG")
-
+row.names(SFG) <- SFG$yearID
 OAK <- TeamsData %>%
   filter(franchID=="OAK")
-
+row.names(OAK) <- OAK$yearID
 NYY <- TeamsData %>%
   filter(franchID=="NYY")
+row.names(NYY) <- NYY$yearID
 ```
 
 ```{r}
 set.seed(1)
-ATL_cluster <- kmeans(ATL[,3:9],3,nstart = 20)
+ATL_cluster <- kmeans(ATL[,4:10],3,nstart = 20)
 ATL_cluster
 table(ATL_cluster$cluster, ATL$R)
+clusplot(ATL[,c(4:10)], ATL_cluster$cluster, color=T, labels = 4, lwd=2)
+ATL <- ATL %>%
+  mutate(Vector=ATL_cluster$cluster)
 
-clusplot(ATL[,c(3:9)], ATL_cluster$cluster, color=T, labels = 2, lwd=2)
+ Aone <- ATL %>%
+  filter(Vector==1)
+ mean(Aone$WP)
+ 
+ Atwo <- ATL %>%
+  filter(Vector==2)
+ mean(Atwo$WP)
+
+ Athree <- ATL %>%
+  filter(Vector==3)
+ mean(Athree$WP)
 ```
 
 ```{r}
 set.seed(1)
-NYY_cluster <- kmeans(NYY[,3:9],2,nstart = 20)
+NYY_cluster <- kmeans(NYY[,4:10],3,nstart = 20)
 NYY_cluster
 table(NYY_cluster$cluster, NYY$R)
+clusplot(NYY[,c(4:10)], NYY_cluster$cluster, color=T, labels = 4, lwd=2)
+NYY <- NYY %>%
+  mutate(Vector=NYY_cluster$cluster)
 
-clusplot(NYY[,c(3:9)], NYY_cluster$cluster, color=T, lwd=2)
+ None <- NYY %>%
+  filter(Vector==1)
+ mean(None$WP)
+ 
+ Ntwo <- NYY %>%
+  filter(Vector==2)
+ mean(Ntwo$WP)
+
+ Nthree <- NYY %>%
+  filter(Vector==3)
+ mean(Nthree$WP)
+
 ```
 
 ```{r}
 set.seed(1)
-CHC_cluster <- kmeans(CHC[,3:9],2,nstart = 20)
+CHC_cluster <- kmeans(CHC[,4:10],2,nstart = 20)
 CHC_cluster
 table(CHC_cluster$cluster, CHC$R)
+clusplot(CHC[,c(4:10)], CHC_cluster$cluster, color=T, labels = 4, lwd=2)
+CHC <- CHC %>%
+  mutate(Vector=CHC_cluster$cluster)
 
-clusplot(CHC[,c(3:9)], CHC_cluster$cluster, color=T, lwd=2)
+ Cone <- CHC %>%
+  filter(Vector==1)
+ mean(Cone$WP)
+ 
+ Ctwo <- CHC %>%
+  filter(Vector==2)
+ mean(Ctwo$WP)
 ```
 ```{r}
 set.seed(1)
-SFG_cluster <- kmeans(SFG[,3:9],2,nstart = 20)
+SFG_cluster <- kmeans(SFG[,4:10],2,nstart = 20)
 SFG_cluster
 table(SFG_cluster$cluster, SFG$R)
+clusplot(SFG[,c(4:10)], SFG_cluster$cluster, color=T, labels = 4, lwd=2)
+SFG <- SFG %>%
+  mutate(Vector=SFG_cluster$cluster)
 
-clusplot(SFG[,c(3:9)], SFG_cluster$cluster, color=T, lwd=2)
+ Sone <- SFG %>%
+  filter(Vector==1)
+ mean(Sone$WP)
+ 
+ Stwo <- SFG %>%
+  filter(Vector==2)
+ mean(Stwo$WP)
 ```
 ```{r}
 set.seed(1)
-OAK_cluster <- kmeans(OAK[,3:9],4,nstart = 20)
+OAK_cluster <- kmeans(OAK[,4:10],3,nstart = 20)
 OAK_cluster
 table(OAK_cluster$cluster, OAK$R)
+clusplot(OAK[,c(4:10)], OAK_cluster$cluster, color=T, labels = 4, lwd=2)
+OAK <- OAK %>%
+  mutate(Vector=OAK_cluster$cluster)
 
-clusplot(OAK[,c(3:9)], OAK_cluster$cluster, color=T, lwd=2)
+
+ Oone <- OAK %>%
+  filter(Vector==1)
+ mean(Oone$WP)
+ 
+ Otwo <- OAK %>%
+  filter(Vector==2)
+ mean(Otwo$WP)
+
+ Othree <- OAK %>%
+  filter(Vector==3)
+ mean(Othree$WP)
+
 ```
 
 
@@ -90,8 +149,6 @@ set.seed(1)
 pitch_cluster <- kmeans(pitch_data[,3:6],2,nstart = 10)
 pitch_cluster
 table(pitch_cluster$cluster, pitch_data$AutoPitchType)## K means to determine pitch types
-
 ##png(file="kmeansPlot.png", height=500, width=650)
 clusplot(pitch_data[,c(3:8)], pitch_cluster$cluster, color=T, lwd=2)
-
 ```

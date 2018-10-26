@@ -5,7 +5,7 @@ date: "10/18/2018"
 output: html_document
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
 library(cluster)
@@ -42,7 +42,7 @@ row.names(NYY) <- NYY$yearID
 set.seed(1)
 ATL_cluster <- kmeans(ATL[,4:10],3,nstart = 20)
 ATL_cluster
-table(ATL_cluster$cluster, ATL$R)
+#table(ATL_cluster$cluster, ATL$R)
 clusplot(ATL[,c(4:10)], ATL_cluster$cluster, color=T, labels = 4, lwd=2)
 ATL <- ATL %>%
   mutate(Vector=ATL_cluster$cluster)
@@ -64,7 +64,7 @@ ATL <- ATL %>%
 set.seed(1)
 NYY_cluster <- kmeans(NYY[,4:10],3,nstart = 20)
 NYY_cluster
-table(NYY_cluster$cluster, NYY$R)
+#table(NYY_cluster$cluster, NYY$R)
 clusplot(NYY[,c(4:10)], NYY_cluster$cluster, color=T, labels = 4, lwd=2)
 NYY <- NYY %>%
   mutate(Vector=NYY_cluster$cluster)
@@ -87,7 +87,7 @@ NYY <- NYY %>%
 set.seed(1)
 CHC_cluster <- kmeans(CHC[,4:10],2,nstart = 20)
 CHC_cluster
-table(CHC_cluster$cluster, CHC$R)
+#table(CHC_cluster$cluster, CHC$R)
 clusplot(CHC[,c(4:10)], CHC_cluster$cluster, color=T, labels = 4, lwd=2)
 CHC <- CHC %>%
   mutate(Vector=CHC_cluster$cluster)
@@ -104,7 +104,7 @@ CHC <- CHC %>%
 set.seed(1)
 SFG_cluster <- kmeans(SFG[,4:10],2,nstart = 20)
 SFG_cluster
-table(SFG_cluster$cluster, SFG$R)
+#table(SFG_cluster$cluster, SFG$R)
 clusplot(SFG[,c(4:10)], SFG_cluster$cluster, color=T, labels = 4, lwd=2)
 SFG <- SFG %>%
   mutate(Vector=SFG_cluster$cluster)
@@ -121,7 +121,7 @@ SFG <- SFG %>%
 set.seed(1)
 OAK_cluster <- kmeans(OAK[,4:10],3,nstart = 20)
 OAK_cluster
-table(OAK_cluster$cluster, OAK$R)
+#table(OAK_cluster$cluster, OAK$R)
 clusplot(OAK[,c(4:10)], OAK_cluster$cluster, color=T, labels = 4, lwd=2)
 OAK <- OAK %>%
   mutate(Vector=OAK_cluster$cluster)
@@ -139,16 +139,4 @@ OAK <- OAK %>%
   filter(Vector==3)
  mean(Othree$WP)
 
-```
-
-
-```{r}
-## K means to determine pitch types
-pitch_data <- read.csv("pitch_types.csv")
-set.seed(1)
-pitch_cluster <- kmeans(pitch_data[,3:6],2,nstart = 10)
-pitch_cluster
-table(pitch_cluster$cluster, pitch_data$AutoPitchType)## K means to determine pitch types
-##png(file="kmeansPlot.png", height=500, width=650)
-clusplot(pitch_data[,c(3:8)], pitch_cluster$cluster, color=T, lwd=2)
 ```

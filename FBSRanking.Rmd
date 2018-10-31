@@ -1,0 +1,75 @@
+---
+title: "FBSRanking"
+author: "Taylor Ledford"
+date: "10/30/2018"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+Offense <- read.csv("3rdDownOffense.csv")
+Defense <- read.csv("3rdDownDefense.csv")
+Win <- read.csv("WinPercentage.csv")
+Turnover <- read.csv("TurnoverMargin.csv")
+DefensiveScoring <- read.csv("ScoringDefense.csv")
+```
+
+```{r message=FALSE, warning=FALSE}
+Offense <- Offense %>%
+  subset(select = c("Name", "Pct")) %>%
+  rename(OffensePct = Pct)
+
+Defense <- Defense %>%
+  subset(select = c("Name", "Pct")) %>%
+  rename(DefensePct = Pct)
+
+Win <- Win %>%
+  subset(select = c("Name", "Pct")) %>%
+  rename(WinPct = Pct)
+
+Turnover <- Turnover %>%
+  subset(select = c("Name", "Avg")) %>%
+  rename(TurnoverAvg = Avg)
+
+DefensiveScoring <- DefensiveScoring %>%
+  subset(select = c("Name", "Avg")) %>%
+  rename(DefenseScoring = Avg)
+
+df <- merge(Offense, Defense, by="Name", all = TRUE)
+df <- merge(df, Win, by="Name", all = TRUE)
+df <- merge(df, Turnover, by="Name", all = TRUE)
+df <- merge(df, DefensiveScoring, by="Name", all = TRUE)
+df <- na.omit(df)
+row.names(df) <- 1:nrow(df)
+```
+
+
+```{r}
+weightOff <- .40
+weightDef <- .20
+weightWin <- .20
+weightTurn <- .10
+weightScor <- .10
+scale <- .05
+
+df <- df %>%
+  mutate(OffensePct_ws=weightOff * OffensePct * scale, 
+         DefensePct_ws=weightDef *  DefensePct * scale, 
+         WinPct_ws=weightWin * WinPct * scale, 
+         TurnoverAvg_ws=weightTurn * TurnoverAvg * scale, 
+         DefenseScoring_ws=weightScor * DefenseScoring * scale)
+
+df <- df %>%
+  mutate(Metric=OffensePct_ws+DefensePct_ws+WinPct_ws+TurnoverAvg_ws-DefenseScoring_ws)
+
+final <- df %>%
+  subset(select = c("Name", "Metric"))
+
+#orders by metric
+final <- final[order(-final$Metric), ]
+#resets row numbers
+row.names(final) <- 1:nrow(final)
+#gives a rank to the team based off metric
+final <- final %>%
+  mutate(Rank = row.names(final))
+```

@@ -7,63 +7,79 @@ output: html_document
 
 ```{r message=FALSE, warning=FALSE}
 library(dplyr)
-Offense <- read.csv("3rdDownOffense.csv")
-Defense <- read.csv("3rdDownDefense.csv")
-Win <- read.csv("WinPercentage.csv")
-Turnover <- read.csv("TurnoverMargin.csv")
-DefensiveScoring <- read.csv("ScoringDefense.csv")
+Offense2016 <- read.csv("3rdDownOffense.csv")
+Defense2016 <- read.csv("3rdDownDefense.csv")
+Win2016 <- read.csv("WinPercentage.csv")
+DefenseR2016 <- read.csv("RushingDefense.csv")
+DefenseP2016 <- read.csv("PassingDefense.csv")
+Bowl2016 <- read.csv("Bowl2016.csv")
+
+
+Offense2017 <- read.csv("3rdDownOffense2017.csv")
+Defense2017 <- read.csv("3rdDownDefense2017.csv")
+Win2017 <- read.csv("WinPercentage2017.csv")
+DefenseR2017 <- read.csv("RushingDefense2017.csv")
+DefenseP2017 <- read.csv("PassingDefenseEff2017.csv")
+Bowl2017 <- read.csv("BowlGames2017.csv")
+```
+##Weights and Scale
+```{r Weights and Scale}
+weightOff <- 1   #Offense 3rd down
+weightDef <- 1   #Defense 3rd down
+weightWin <- 1   #Win percentage
+weightDefR <- 2  #Rushing Defense (Made some difference)
+weightDefP <- 5  #Passing Defense Efficiency (Seemed to make the most difference)
+scale <- .0005
 ```
 
-```{r message=FALSE, warning=FALSE}
-Offense <- Offense %>%
+```{r 2016 data cleaning, message=FALSE, warning=FALSE, include=FALSE}
+#3rd down Offense
+Offense2016 <- Offense2016 %>%                                 
   subset(select = c("Name", "Pct")) %>%
   rename(OffensePct = Pct)
 
-Defense <- Defense %>%
+#3rd Defense
+Defense2016 <- Defense2016 %>%
   subset(select = c("Name", "Pct")) %>%
   rename(DefensePct = Pct)
 
-Win <- Win %>%
+#Win Percentage
+Win2016 <- Win2016 %>%
   subset(select = c("Name", "Pct")) %>%
   rename(WinPct = Pct)
 
-Turnover <- Turnover %>%
-  subset(select = c("Name", "Avg")) %>%
-  rename(TurnoverAvg = Avg)
+#Rushing Defense
+DefenseR2016 <- DefenseR2016 %>%
+  rename(AvgDefYPG = YPG)
 
-DefensiveScoring <- DefensiveScoring %>%
-  subset(select = c("Name", "Avg")) %>%
-  rename(DefenseScoring = Avg)
+#Rushing Offense
+DefenseP2016 <- DefenseP2016 %>%
+  rename(DefPassEff = Pass.Eff)
 
-df <- merge(Offense, Defense, by="Name", all = TRUE)
-df <- merge(df, Win, by="Name", all = TRUE)
-df <- merge(df, Turnover, by="Name", all = TRUE)
-df <- merge(df, DefensiveScoring, by="Name", all = TRUE)
-df <- na.omit(df)
-row.names(df) <- 1:nrow(df)
+df2016 <- merge(Offense2016, Defense2016, by="Name", all = TRUE)
+df2016 <- merge(df2016, Win2016, by="Name", all = TRUE)
+df2016 <- merge(df2016, DefenseR2016, by="Name", all = TRUE)
+df2016 <- merge(df2016, DefenseP2016, by="Name", all = TRUE)
+df2016 <- na.omit(df2016)
+row.names(df2016) <- 1:nrow(df2016)
 ```
-
-
+##Our Metric
 ```{r}
-weightOff <- .40
-weightDef <- .20
-weightWin <- .20
-weightTurn <- .10
-weightScor <- .10
-scale <- .05
-
-df <- df %>%
+df2016 <- df2016 %>%
   mutate(OffensePct_ws=weightOff * OffensePct * scale, 
          DefensePct_ws=weightDef *  DefensePct * scale, 
          WinPct_ws=weightWin * WinPct * scale, 
-         TurnoverAvg_ws=weightTurn * TurnoverAvg * scale, 
-         DefenseScoring_ws=weightScor * DefenseScoring * scale)
+         AvgDefR_ws=weightDefR * AvgDefYPG * scale, 
+         DefPassEff_ws=weightDefP * DefPassEff * scale)
 
-df <- df %>%
-  mutate(Metric=OffensePct_ws+DefensePct_ws+WinPct_ws+TurnoverAvg_ws-DefenseScoring_ws)
+```
 
-final <- df %>%
-  subset(select = c("Name", "Metric"))
+```{r message=FALSE, warning=FALSE, include=FALSE}
+df2016 <- df2016 %>%
+  mutate(Metric=OffensePct_ws-DefensePct_ws+WinPct_ws-AvgDefR_ws-DefPassEff_ws)
+
+final <- df2016 %>%
+  subset(select = c("Name", "Metric", "OffensePct_ws", "DefensePct_ws", "WinPct_ws", "AvgDefR_ws", "DefPassEff_ws"))
 
 #orders by metric
 final <- final[order(-final$Metric), ]
@@ -71,5 +87,109 @@ final <- final[order(-final$Metric), ]
 row.names(final) <- 1:nrow(final)
 #gives a rank to the team based off metric
 final <- final %>%
-  mutate(Rank = row.names(final))
+  mutate(Rank = as.numeric(row.names(final)))
+
+final$Name <- as.character(final$Name)
+Bowl2016$Winner <- as.character(Bowl2016$Winner)
+Bowl2016$Loser <- as.character(Bowl2016$Loser)
+row.names(final) <- final$Name
+```
+##2016 Bowl Game Percent Correct
+```{r 2016 Bowl Game Percent Correct}
+Bowl2016 <- Bowl2016 %>%
+  mutate(WinRank = final[Bowl2016$Winner,]$Rank)
+
+Bowl2016 <- Bowl2016 %>%
+  mutate(LoserRank = final[Bowl2016$Loser,]$Rank)
+
+row.names(final) <- 1:nrow(final)
+
+f <- Bowl2016$WinRank - Bowl2016$LoserRank
+
+g <- sum(f < 0)
+
+PercentCorrect2016 <- g/nrow(Bowl2016)
+
+PercentCorrect2016
+```
+
+```{r 2017 data cleaning, message=FALSE, warning=FALSE, include=FALSE}
+#3rd down Offense
+Offense2017 <- Offense2017 %>%                                 
+  subset(select = c("Name", "Pct")) %>%
+  rename(OffensePct = Pct)
+
+#3rd Defense
+Defense2017 <- Defense2017 %>%
+  subset(select = c("Name", "Pct")) %>%
+  rename(DefensePct = Pct)
+
+#Win Percentage
+Win2017 <- Win2017 %>%
+  subset(select = c("Name", "Pct")) %>%
+  rename(WinPct = Pct)
+
+#Rushing Defense
+DefenseR2017 <- DefenseR2017 %>%
+  rename(AvgDefYPG = YPG)
+
+#Rushing Offense
+DefenseP2017 <- DefenseP2017 %>%
+  rename(DefPassEff = Pass.Eff)
+
+df2017 <- merge(Offense2017, Defense2017, by="Name", all = TRUE)
+df2017 <- merge(df2017, Win2017, by="Name", all = TRUE)
+df2017 <- merge(df2017, DefenseR2017, by="Name", all = TRUE)
+df2017 <- merge(df2017, DefenseP2017, by="Name", all = TRUE)
+df2017 <- na.omit(df2017)
+row.names(df2017) <- 1:nrow(df2017)
+```
+##Our Metric
+```{r}
+df2017 <- df2017 %>%
+  mutate(OffensePct_ws=weightOff * OffensePct * scale, 
+         DefensePct_ws=weightDef *  DefensePct * scale, 
+         WinPct_ws=weightWin * WinPct * scale, 
+         AvgDefR_ws=weightDefR * AvgDefYPG * scale, 
+         DefPassEff_ws=weightDefP * DefPassEff * scale)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+df2017 <- df2017 %>%
+  mutate(Metric=OffensePct_ws-DefensePct_ws+WinPct_ws-AvgDefR_ws-DefPassEff_ws)
+
+final2017 <- df2017 %>%
+  subset(select = c("Name", "Metric", "OffensePct_ws", "DefensePct_ws", "WinPct_ws", "AvgDefR_ws", "DefPassEff_ws"))
+
+#orders by metric
+final2017 <- final2017[order(-final2017$Metric), ]
+#resets row numbers
+row.names(final2017) <- 1:nrow(final2017)
+#gives a rank to the team based off metric
+final2017 <- final2017 %>%
+  mutate(Rank = as.numeric(row.names(final2017)))
+
+final2017$Name <- as.character(final2017$Name)
+Bowl2017$Winner <- as.character(Bowl2017$Winner)
+Bowl2017$Loser <- as.character(Bowl2017$Loser)
+row.names(final2017) <- final2017$Name
+```
+##2017 Bowl Game Percent Correct
+```{r 2017 Bowl Game Percent Correct}
+Bowl2017 <- Bowl2017 %>%
+  mutate(WinRank = final2017[Bowl2017$Winner,]$Rank)
+
+Bowl2017 <- Bowl2017 %>%
+  mutate(LoserRank = final2017[Bowl2017$Loser,]$Rank)
+
+row.names(final2017) <- 1:nrow(final2017)
+
+
+f <- Bowl2017$WinRank - Bowl2017$LoserRank
+
+g <- sum(f < 0)
+
+PercentCorrect2017 <- g/nrow(Bowl2017)
+
+PercentCorrect2017
 ```

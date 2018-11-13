@@ -130,21 +130,86 @@ $(document).ready(function () {
 
 
 <pre class="r"><code>library(dplyr)
-Offense &lt;- read.csv(&quot;3rdDownOffense.csv&quot;)
-Defense &lt;- read.csv(&quot;3rdDownDefense.csv&quot;)
-WinPercentage &lt;- read.csv(&quot;WinPercentage.csv&quot;)
-TurnoverMargin &lt;- read.csv(&quot;TurnoverMargin.csv&quot;)
-DefensiveScoring &lt;- read.csv(&quot;ScoringDefense.csv&quot;)</code></pre>
-<pre class="r"><code>OffensePercent &lt;- Offense %&gt;%
-  subset(select = c(&quot;Name&quot;, &quot;Pct&quot;))
-DefensePercent &lt;- Defense %&gt;%
-  subset(select = c(&quot;Name&quot;, &quot;Pct&quot;))
-WinPercent &lt;- WinPercentage %&gt;%
-  subset(select = c(&quot;Name&quot;, &quot;Pct&quot;))
-Turnover &lt;- TurnoverMargin %&gt;%
-  subset(select = c(&quot;Name&quot;, &quot;Avg&quot;))
-DefenseScoring &lt;- DefensiveScoring %&gt;%
-  subset(select = c(&quot;Name&quot;, &quot;Avg&quot;))</code></pre>
+Offense2016 &lt;- read.csv(&quot;3rdDownOffense.csv&quot;)
+Defense2016 &lt;- read.csv(&quot;3rdDownDefense.csv&quot;)
+Win2016 &lt;- read.csv(&quot;WinPercentage.csv&quot;)
+DefenseR2016 &lt;- read.csv(&quot;RushingDefense.csv&quot;)
+DefenseP2016 &lt;- read.csv(&quot;PassingDefense.csv&quot;)
+Bowl2016 &lt;- read.csv(&quot;Bowl2016.csv&quot;)
+
+
+Offense2017 &lt;- read.csv(&quot;3rdDownOffense2017.csv&quot;)
+Defense2017 &lt;- read.csv(&quot;3rdDownDefense2017.csv&quot;)
+Win2017 &lt;- read.csv(&quot;WinPercentage2017.csv&quot;)
+DefenseR2017 &lt;- read.csv(&quot;RushingDefense2017.csv&quot;)
+DefenseP2017 &lt;- read.csv(&quot;PassingDefenseEff2017.csv&quot;)
+Bowl2017 &lt;- read.csv(&quot;BowlGames2017.csv&quot;)</code></pre>
+<div id="weights-and-scale" class="section level2">
+<h2>Weights and Scale</h2>
+<pre class="r"><code>weightOff &lt;- 1   #Offense 3rd down
+weightDef &lt;- 1   #Defense 3rd down
+weightWin &lt;- 1   #Win percentage
+weightDefR &lt;- 2  #Rushing Defense (Made some difference)
+weightDefP &lt;- 5  #Passing Defense Efficiency (Seemed to make the most difference)
+scale &lt;- .0005</code></pre>
+</div>
+<div id="our-metric" class="section level2">
+<h2>Our Metric</h2>
+<pre class="r"><code>df2016 &lt;- df2016 %&gt;%
+  mutate(OffensePct_ws=weightOff * OffensePct * scale, 
+         DefensePct_ws=weightDef *  DefensePct * scale, 
+         WinPct_ws=weightWin * WinPct * scale, 
+         AvgDefR_ws=weightDefR * AvgDefYPG * scale, 
+         DefPassEff_ws=weightDefP * DefPassEff * scale)</code></pre>
+</div>
+<div id="bowl-game-percent-correct" class="section level2">
+<h2>2016 Bowl Game Percent Correct</h2>
+<pre class="r"><code>Bowl2016 &lt;- Bowl2016 %&gt;%
+  mutate(WinRank = final[Bowl2016$Winner,]$Rank)
+
+Bowl2016 &lt;- Bowl2016 %&gt;%
+  mutate(LoserRank = final[Bowl2016$Loser,]$Rank)
+
+row.names(final) &lt;- 1:nrow(final)
+
+f &lt;- Bowl2016$WinRank - Bowl2016$LoserRank
+
+g &lt;- sum(f &lt; 0)
+
+PercentCorrect2016 &lt;- g/nrow(Bowl2016)
+
+PercentCorrect2016</code></pre>
+<pre><code>## [1] 0.6585366</code></pre>
+</div>
+<div id="our-metric-1" class="section level2">
+<h2>Our Metric</h2>
+<pre class="r"><code>df2017 &lt;- df2017 %&gt;%
+  mutate(OffensePct_ws=weightOff * OffensePct * scale, 
+         DefensePct_ws=weightDef *  DefensePct * scale, 
+         WinPct_ws=weightWin * WinPct * scale, 
+         AvgDefR_ws=weightDefR * AvgDefYPG * scale, 
+         DefPassEff_ws=weightDefP * DefPassEff * scale)</code></pre>
+</div>
+<div id="bowl-game-percent-correct-1" class="section level2">
+<h2>2017 Bowl Game Percent Correct</h2>
+<pre class="r"><code>Bowl2017 &lt;- Bowl2017 %&gt;%
+  mutate(WinRank = final2017[Bowl2017$Winner,]$Rank)
+
+Bowl2017 &lt;- Bowl2017 %&gt;%
+  mutate(LoserRank = final2017[Bowl2017$Loser,]$Rank)
+
+row.names(final2017) &lt;- 1:nrow(final2017)
+
+
+f &lt;- Bowl2017$WinRank - Bowl2017$LoserRank
+
+g &lt;- sum(f &lt; 0)
+
+PercentCorrect2017 &lt;- g/nrow(Bowl2017)
+
+PercentCorrect2017</code></pre>
+<pre><code>## [1] 0.725</code></pre>
+</div>
 
 
 

@@ -8,13 +8,8 @@ output: html_document
 
 ```{r message=FALSE, warning=FALSE}
 library(dplyr)
-library(party)
-library(tree)
-library(rpart)
 library(taRifx)
 library(rattle)
-library(rpart.plot)
-library(RColorBrewer)
 rushing <- read.csv("2017_Rushing.csv")
 combine <- read.csv("combine.csv")
 Power5 <- read.csv("Powerof5.csv")
@@ -33,20 +28,20 @@ Power5$School <- as.character(Power5$School)
 ```
 
 ```{r}
-# list <- vector("numeric", length=50)
-# CollegeCategory <- function(x) {
-#   for(i in 1:nrow(Power5)) {
-#     for(k in 1:nrow(totalData)) {
-#       if(Power5[i, "School"] == totalData[k, "College"]) {
-#         print(Power5[i, "School"])
-#         print(totalData[k, "College"])
-#         list[[k]] <- as.numeric("1")
-#         print(i)
-#         print(k)
-#       }
-#     }
-#   }
-# }
-# 
-# CollegeCategory("Category")
+list <- vector("numeric", length=50)
+CollegeCategory <- function(x) {
+  for(i in 1:nrow(Power5)) {
+    for(k in 1:nrow(totalData)) {
+      if(Power5[i, "School"] == totalData[k, "College"]) {
+        print(Power5[i, "School"])
+        print(totalData[k, "College"])
+        list[[k]] <- as.numeric("1")
+        print(i)
+        print(k)
+      }
+    }
+  }
+}
+ 
+CollegeCategory("Category")
 ```

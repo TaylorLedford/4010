@@ -93,6 +93,7 @@ final$Name <- as.character(final$Name)
 Bowl2016$Winner <- as.character(Bowl2016$Winner)
 Bowl2016$Loser <- as.character(Bowl2016$Loser)
 row.names(final) <- final$Name
+write.csv(final, "final.csv")
 ```
 ##2016 Bowl Game Percent Correct
 ```{r 2016 Bowl Game Percent Correct}

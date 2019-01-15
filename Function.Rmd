@@ -45,3 +45,57 @@ CollegeCategory <- function(x) {
  
 CollegeCategory("Category")
 ```
+```{r}
+df <- df %>%
+  mutate(`Points Allowed` = `Points Allowed` * weightPA,
+         `First Downs Allowed` = `First Downs Allowed` * weightFDA,
+         `Points Scored` = `Points Scored` * weightPS,
+         `Yards Per Play` = `Yards Per Play` * weightYPP,
+         `Number of Punts` = `Number of Punts` * weightNP,
+         `Takeaway Ratio` = `Takeaway Ratio` * weightTR)
+
+df <- df %>%
+  mutate(Metric = `Yards Per Play`
+         + `Points Scored` 
+         - `Points Allowed` 
+         - `First Downs Allowed` 
+         - `Number of Punts`
+         + `Takeaway Ratio`)
+
+df <- df %>%
+  arrange(Year, -Metric)
+
+Length80 <- df %>%
+  filter(Year < 1995) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:28)
+
+Length95 <- df %>%
+  filter(Year > 1994 & Year < 1999) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:30)
+
+Length96 <- df %>%
+  filter(Year > 1998) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:31)
+
+final2 <- rbind(Length80, Length95, Length96)
+
+temp <- subset(final2, select=c("Year", "Team", "Rank"))
+Superbowl2 <- rename(Superbowl2, "Team" = "Winners")
+Superbowl2 <- merge(Superbowl2, temp, by=c("Year", "Team"))
+Superbowl2 <- rename(Superbowl2, "Winners" = "Team")
+Superbowl2 <- rename(Superbowl2, "WRank" = "Rank")
+
+Superbowl2 <- rename(Superbowl2, "Team" = "Losers")
+Superbowl2 <- merge(Superbowl2, temp, by=c("Year", "Team"))
+Superbowl2 <- rename(Superbowl2, "Losers" = "Team")
+Superbowl2 <- rename(Superbowl2, "LRank" = "Rank")
+
+h <- Superbowl2$WRank - Superbowl2$LRank
+
+h
+
+mean(h < 0)
+```

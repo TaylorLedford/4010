@@ -1,0 +1,194 @@
+---
+title: "Final Project"
+author: "Taylor Ledford, Josh Kornmayer, and Zack Bell"
+date: "11/27/2018"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+OffenseTrain <- read.csv("OffenseTrain.csv")
+DefenseTrain <- read.csv("DefenseTrain.csv")
+Superbowl <- read.csv("SuperBowlGames.csv")
+OffenseTest <- read.csv("OffenseTest.csv")
+DefenseTest <- read.csv("DefenseTest.csv")
+SpecialTrain <- read.csv("SpecialTeamsTrain.csv")
+SpecialTest <- read.csv("SpecialTeamsTest.csv")
+```
+
+```{r train, message=FALSE, warning=FALSE, include=FALSE}
+OffenseTrain$Tm <- as.character(OffenseTrain$Tm)
+DefenseTrain$Tm <- as.character(DefenseTrain$Tm)
+OffenseTest$Tm <- as.character(OffenseTest$Tm)
+DefenseTest$Tm <- as.character(DefenseTest$Tm)
+SpecialTrain$Tm <- as.character(SpecialTrain$Tm)
+SpecialTest$Tm <- as.character(SpecialTest$Tm)
+Superbowl$Winners <- as.character(Superbowl$Winners)
+Superbowl$Losers <- as.character(Superbowl$Losers)
+DefenseTrain$TOR <- DefenseTrain$TO/DefenseTrain$Ply
+DefenseTest$TOR <- DefenseTest$TO/DefenseTest$Ply
+```
+
+```{r include=FALSE}
+Defense_df_train <- data.frame(DefenseTrain$Year, DefenseTrain$Tm, DefenseTrain$PF, DefenseTrain$TOR, DefenseTrain$X1stD)
+
+Offense_df_train <- data.frame(OffenseTrain$Year, OffenseTrain$Tm, OffenseTrain$PF, OffenseTrain$Y.P)
+
+Special_df_train <- data.frame(SpecialTrain$Year, SpecialTrain$Tm, SpecialTrain$Pnt)
+
+names(Defense_df_train) <- c("Year", "Team", "Points Allowed", "Takeaway Ratio", "First Downs Allowed")
+names(Offense_df_train) <- c("Year", "Team", "Points Scored", "Yards Per Play")
+names(Special_df_train) <- c("Year", "Team", "Number of Punts")
+
+df_train <- merge(Defense_df_train, Offense_df_train, by = c("Year", "Team"))
+df_train <- merge(df_train, Special_df_train, by = c("Year", "Team"))
+```
+#Scales and Weights
+```{r}
+PointScale <- .001
+PuntScale <- .002
+YPPScale <- .1
+
+weightPA <- 5
+weightPS <- 2
+weightFDA <- 4
+weightNP <- 1
+weightTR <- 1
+weightYPP <- 4
+```
+
+```{r include=FALSE}
+df_percent_train <- df_train %>%
+  mutate(`Points Allowed` = `Points Allowed` * PointScale * weightPA,
+         `First Downs Allowed` = `First Downs Allowed` * PointScale * weightFDA,
+         `Points Scored` = `Points Scored` * PointScale * weightPS,
+         `Yards Per Play` = `Yards Per Play` * YPPScale * weightYPP,
+         `Number of Punts` = `Number of Punts` * PuntScale * weightNP,
+         `Takeaway Ratio` = `Takeaway Ratio` * weightTR)
+```
+#Metric
+```{r}
+df_percent_train <- df_percent_train %>%
+  mutate(Metric = `Yards Per Play` 
+         + `Points Scored` 
+         - `Points Allowed` 
+         - `First Downs Allowed` 
+         - `Number of Punts`
+         + `Takeaway Ratio`)
+```
+
+```{r include=FALSE}
+df_percent_train <- df_percent_train %>%
+  arrange(Year, -Metric)
+
+Length80_train <- df_percent_train %>%
+  filter(Year < 1995) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:28)
+
+Length95_train <- df_percent_train %>%
+  filter(Year > 1994 & Year < 1999) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:30)
+
+Length96_train <- df_percent_train %>%
+  filter(Year > 1998) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:31)
+
+final_train <- rbind(Length80_train, Length95_train, Length96_train)
+
+temp_train <- subset(final_train, select=c("Year", "Team", "Rank"))
+Superbowl_train <- rename(Superbowl, "Team" = "Winners")
+Superbowl_train <- merge(Superbowl_train, temp_train, by=c("Year", "Team"))
+Superbowl_train <- rename(Superbowl_train, "Winners" = "Team")
+Superbowl_train <- rename(Superbowl_train, "WRank" = "Rank")
+
+Superbowl_train <- rename(Superbowl_train, "Team" = "Losers")
+Superbowl_train <- merge(Superbowl_train, temp_train, by=c("Year", "Team"))
+Superbowl_train <- rename(Superbowl_train, "Losers" = "Team")
+Superbowl_train <- rename(Superbowl_train, "LRank" = "Rank")
+Superbowl_train <- Superbowl_train[,c(1,3,5,2,6,4)]
+
+f_train <- Superbowl_train$WRank - Superbowl_train$LRank
+```
+#Train Results
+```{r}
+Superbowl_train
+
+mean(f_train < 0)
+```
+
+```{r test, include=FALSE}
+Defense_df_test <- data.frame(DefenseTest$Year, DefenseTest$Tm, DefenseTest$PF, DefenseTest$TOR, DefenseTest$X1stD)
+
+Offense_df_test <- data.frame(OffenseTest$Year, OffenseTest$Tm, OffenseTest$PF, OffenseTest$Y.P)
+
+Special_df_test <- data.frame(SpecialTest$Year, SpecialTest$Tm, SpecialTest$Pnt)
+
+names(Defense_df_test) <- c("Year", "Team", "Points Allowed", "Takeaway Ratio", "First Downs Allowed")
+names(Offense_df_test) <- c("Year", "Team", "Points Scored", "Yards Per Play")
+names(Special_df_test) <- c("Year", "Team", "Number of Punts")
+
+df_test <- merge(Defense_df_test, Offense_df_test, by = c("Year", "Team"))
+df_test <- merge(df_test, Special_df_test, by = c("Year", "Team"))
+
+df_percent_test <- df_test %>%
+  mutate(`Points Allowed` = `Points Allowed` * PointScale * weightPA,
+         `First Downs Allowed` = `First Downs Allowed` * PointScale * weightFDA,
+         `Points Scored` = `Points Scored` * PointScale * weightPS,
+         `Yards Per Play` = `Yards Per Play` * YPPScale * weightYPP,
+         `Number of Punts` = `Number of Punts` * PuntScale * weightNP,
+         `Takeaway Ratio` = `Takeaway Ratio` * weightTR)
+```
+#Metric
+```{r}
+df_percent_test <- df_percent_test %>%
+  mutate(Metric = `Yards Per Play` 
+         + `Points Scored` 
+         - `Points Allowed` 
+         - `First Downs Allowed` 
+         - `Number of Punts`
+         + `Takeaway Ratio`)
+```
+
+```{r include=FALSE}
+df_percent_test <- df_percent_test %>%
+  arrange(Year, -Metric)
+
+Length01_test <- df_percent_test %>%
+  filter(Year == 2001) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:31)
+
+Length02_test <- df_percent_test %>%
+  filter(Year > 2001) %>%
+  group_by(Year) %>%
+  mutate(Rank = 1:32)
+
+final_test <- rbind(Length01_test, Length02_test)
+
+temp_test <- subset(final_test, select=c("Year", "Team", "Rank"))
+Superbowl_test <- rename(Superbowl, "Team" = "Winners")
+Superbowl_test <- merge(Superbowl_test, temp_test, by=c("Year", "Team"))
+Superbowl_test <- rename(Superbowl_test, "Winners" = "Team")
+Superbowl_test <- rename(Superbowl_test, "WRank" = "Rank")
+
+Superbowl_test <- rename(Superbowl_test, "Team" = "Losers")
+Superbowl_test <- merge(Superbowl_test, temp_test, by=c("Year", "Team"))
+Superbowl_test <- rename(Superbowl_test, "Losers" = "Team")
+Superbowl_test <- rename(Superbowl_test, "LRank" = "Rank")
+Superbowl_test <- Superbowl_test[,c(1,3,5,2,6,4)]
+
+f_test <- Superbowl_test$WRank - Superbowl_test$LRank
+```
+#Test Results
+```{r}
+Superbowl_test
+
+mean(f_test < 0)
+```
+
+
+
+
